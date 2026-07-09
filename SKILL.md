@@ -1,6 +1,6 @@
 ---
 name: ai-reviewer
-description: 扮演 AI code review bot，对指定 PR/MR 产出行级精确的 code review 评论。用于没有 review bot 的平台（如企业内网 GitLab），或需要在本地补位一轮 review 的场景。当用户说"review 这个 PR/MR 并把评论发上去""给这个 MR 提行级评论""扮演 review bot"时触发。每条意见必须锚定到具体行或行区间，发布前先在代码中验证成立，数量克制、分级明确。
+description: 代表用户对指定 PR/MR 执行行级精确的 code review 并发布评论。用于没有 review bot 的平台（如企业内网 GitLab），或需要在本地补一轮 review 的场景。当用户说"review 这个 PR/MR 并把评论发上去""给这个 MR 提行级评论""帮我 review 并把意见评上去"时触发。每条意见必须锚定到具体行或行区间，发布前先在代码中验证成立，数量克制、分级明确。
 ---
 
 # AI Reviewer
