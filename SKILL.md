@@ -1,0 +1,47 @@
+---
+name: ai-reviewer
+description: 扮演 AI code review bot，对指定 PR/MR 产出行级精确的 code review 评论。用于没有 review bot 的平台（如企业内网 GitLab），或需要在本地补位一轮 review 的场景。当用户说"review 这个 PR/MR 并把评论发上去""给这个 MR 提行级评论""扮演 review bot"时触发。每条意见必须锚定到具体行或行区间，发布前先在代码中验证成立，数量克制、分级明确。
+---
+
+# AI Reviewer
+
+## Workflow
+
+1. 识别平台：`git remote get-url origin`，GitHub 用 [references/gh.md](references/gh.md)，GitLab 用 [references/glab.md](references/glab.md) 中的命令完成 diff 获取与评论发布。
+2. 收集上下文：PR/MR 的 diff、描述、关联 issue、CI 状态；对 diff 涉及的文件读取周边代码，理解改动意图后再评。
+3. 产出意见：
+   - 只评 diff 内的改动及其直接影响，不借题发挥要求重构无关代码。
+   - 每条意见发布前必须在代码中验证成立（读到具体行为证据），不基于猜测发评论。
+   - 分级：`[blocker]`（合并前必须处理）/ `[suggestion]`（建议处理）/ `[nit]`（可忽略的细节）。
+   - 数量克制：单轮不超过 10 条行级评论，超出时只保留影响最大的，其余并入总评一笔带过。
+4. 发布评论：
+   - 每条意见精确锚定到行或行区间（参数格式见 references）；意见针对连续多行时必须传区间，不允许只评末行。
+   - 新增行评改动后一侧（GitHub `side=RIGHT` / GitLab `new_line`），删除行评改动前一侧（`side=LEFT` / `old_line`）。
+   - 最后发一条不带行位置的总评：整体评价 + 分级统计 + 未展开的次要观察。
+5. 向用户简报：评论条数、分级分布、最重要的 1-3 条意见。
+
+## Rules
+
+- 行锚定强制：针对具体代码的意见必须带行位置。给不出精确位置说明还没想清楚——要么补充验证，要么并入总评。
+- 语言跟随 PR/MR 描述的主语言。
+- 每条意见包含三要素：问题是什么 + 为什么是问题 + 最小可执行的修改方向。不代写整段实现，实现判断留给 PR 作者。
+- 禁用空话：`建议优化`、`可以考虑重构`、`最好加个测试` 这类无具体对象、无具体动作的表述。
+- 不确定的意见用疑问语气明示（"如果 X 成立，这里会 Y——请确认"），不伪装成断言。
+- 不重复机器已覆盖的检查：风格问题交给 linter，CI 已报的错不再评。
+
+## Comment Pattern
+
+- `[blocker] <问题>：<证据/后果>。建议 <最小修改方向>。`
+- `[suggestion] <问题>：<理由>。可改为 <方向>。`
+- `[nit] <细节>。`
+
+## Done
+
+- 所有行级意见已发布且锚定到精确行/行区间。
+- 总评已发布（整体评价 + 分级统计）。
+- 已向用户简报评论概况和最重要的 1-3 条。
+
+## References
+
+- [GitHub (gh) 命令参考](references/gh.md)
+- [GitLab (glab) 命令参考](references/glab.md)
